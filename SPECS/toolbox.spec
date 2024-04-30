@@ -1,41 +1,44 @@
 %global __brp_check_rpaths %{nil}
 
 Name:          toolbox
-Version:       0.0.99.4
+Version:       0.0.99.5
 
 %global goipath github.com/containers/%{name}
 
-%if 0%{?rhel} == 9
+%if 0%{?fedora}
+%gometa -f
+%endif
+
+%if 0%{?rhel}
+%if 0%{?rhel} <= 9
 %gometa
 %else
 %gometa -f
 %endif
+%endif
 
-Release:       6%{?dist}
-Summary:       Tool for containerized command line environments on Linux
+Release:       2%{?dist}
+Summary:       Tool for interactive command line environments on Linux
 
 License:       ASL 2.0
 URL:           https://containertoolbx.org/
 Source0:       https://github.com/containers/%{name}/releases/download/%{version}/%{name}-%{version}-vendored.tar.xz
-%if 0%{?rhel}
-Source1:       %{name}.conf
-%endif
-
-# Upstream
-Patch0:        toolbox-Don-t-use-podman-1-when-generating-the-comp.patch
-Patch1:        toolbox-Don-t-validate-subordinate-IDs-when-generat.patch
-Patch2:        toolbox-cmd-initContainer-Be-aware-of-security-hardened-moun.patch
 
 # RHEL specific
-Patch100:      toolbox-Make-the-build-flags-match-RHEL-s-gobuild.patch
-Patch101:      toolbox-Make-the-build-flags-match-RHEL-s-gobuild-for-PPC64.patch
-%if 0%{?rhel}
-Patch102:      toolbox-Add-migration-paths-for-coreos-toolbox-users.patch
-%endif
+Source1:       %{name}.conf
+
+# Fedora specific
+Patch100:      toolbox-Make-the-build-flags-match-Fedora-s-gobuild.patch
+Patch101:      toolbox-Make-the-build-flags-match-Fedora-s-gobuild-for-PPC64.patch
+
+# RHEL specific
+Patch200:      toolbox-Make-the-build-flags-match-RHEL-s-gobuild.patch
+Patch201:      toolbox-Make-the-build-flags-match-RHEL-s-gobuild-for-PPC64.patch
+Patch202:      toolbox-Add-migration-paths-for-coreos-toolbox-users.patch
 
 BuildRequires: gcc
 BuildRequires: go-md2man
-BuildRequires: golang >= 1.20.10
+BuildRequires: golang >= 1.21.7
 BuildRequires: meson >= 0.58.0
 BuildRequires: pkgconfig(bash-completion)
 BuildRequires: shadow-utils-subid-devel
@@ -45,14 +48,15 @@ BuildRequires: systemd-rpm-macros
 BuildRequires: golang(github.com/HarryMichal/go-version) >= 1.0.1
 BuildRequires: golang(github.com/acobaugh/osrelease) >= 0.1.0
 BuildRequires: golang(github.com/briandowns/spinner) >= 1.17.0
-BuildRequires: golang(github.com/docker/go-units) >= 0.4.0
+BuildRequires: golang(github.com/docker/go-units) >= 0.5.0
 BuildRequires: golang(github.com/fsnotify/fsnotify) >= 1.5.1
 BuildRequires: golang(github.com/godbus/dbus) >= 5.0.6
 BuildRequires: golang(github.com/sirupsen/logrus) >= 1.8.1
 BuildRequires: golang(github.com/spf13/cobra) >= 1.3.0
 BuildRequires: golang(github.com/spf13/viper) >= 1.10.1
-BuildRequires: golang(golang.org/x/sys/unix)
-BuildRequires: golang(golang.org/x/term)
+BuildRequires: golang(golang.org/x/sys/unix) >= 0.1.0
+BuildRequires: golang(golang.org/x/text) >= 0.3.8
+BuildRequires: golang(gopkg.in/yaml.v3) >= 3.0.0
 BuildRequires: pkgconfig(fish)
 # for tests
 # BuildRequires: codespell
@@ -60,17 +64,26 @@ BuildRequires: pkgconfig(fish)
 # BuildRequires: ShellCheck
 %endif
 
+Recommends:    skopeo
+Recommends:    subscription-manager
+
 Requires:      containers-common
-Requires:      podman >= 1.4.0
+Requires:      podman >= 1.6.4
 %if ! 0%{?rhel}
 Requires:      flatpak-session-helper
 %endif
 
 
 %description
-Toolbox is a tool for Linux operating systems, which allows the use of
-containerized command line environments. It is built on top of Podman and
-other standard container technologies from OCI.
+Toolbx is a tool for Linux, which allows the use of interactive command line
+environments for development and troubleshooting the host operating system,
+without having to install software on the host. It is built on top of Podman
+and other standard container technologies from OCI.
+
+Toolbx environments have seamless access to the user's home directory, the
+Wayland and X11 sockets, networking (including Avahi), removable devices (like
+USB sticks), systemd journal, SSH agent, D-Bus, ulimits, /dev and the udev
+database, etc..
 
 
 %package       tests
@@ -78,12 +91,14 @@ Summary:       Tests for %{name}
 
 Requires:      %{name}%{?_isa} = %{version}-%{release}
 Requires:      coreutils
-Requires:      gawk
 Requires:      grep
+Requires:      httpd-tools
+Requires:      openssl
 Requires:      skopeo
 %if ! 0%{?rhel}
-Requires:      bats
+Requires:      bats >= 1.7.0
 %endif
+
 
 %description   tests
 The %{name}-tests package contains system tests for %{name}.
@@ -91,18 +106,25 @@ The %{name}-tests package contains system tests for %{name}.
 
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
 
+%if 0%{?fedora}
 %ifnarch ppc64
 %patch100 -p1
 %else
 %patch101 -p1
 %endif
+%endif
 
 %if 0%{?rhel}
-%patch102 -p1
+%ifnarch ppc64
+%patch200 -p1
+%else
+%patch201 -p1
+%endif
+
+%if 0%{?rhel} <= 9
+%patch202 -p1
+%endif
 %endif
 
 %gomkdir -s %{_builddir}/%{extractdir}/src %{?rhel:-k}
@@ -116,7 +138,9 @@ export CGO_CFLAGS="%{optflags} -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_LARGEFILE64_
 %meson \
 %if 0%{?rhel}
     -Dfish_completions_dir=%{_datadir}/fish/vendor_completions.d \
+%if 0%{?rhel} <= 9
     -Dmigration_path_for_coreos_toolbox=true \
+%endif
 %endif
     -Dprofile_dir=%{_sysconfdir}/profile.d \
     -Dtmpfiles_dir=%{_tmpfilesdir} \
@@ -133,7 +157,9 @@ export CGO_CFLAGS="%{optflags} -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_LARGEFILE64_
 %meson_install
 
 %if 0%{?rhel}
+%if 0%{?rhel} <= 9
 install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
+%endif
 %endif
 
 
@@ -151,14 +177,28 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 %{_sysconfdir}/profile.d/%{name}.sh
 %{_tmpfilesdir}/%{name}.conf
 
+
 %files tests
 %{_datadir}/%{name}
 
 
 %changelog
-* Sat Oct 14 2023 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.4-6
-- Rebuild for CVE-2023-39325 and CVE-2023-44487
-Resolves: RHEL-12693
+* Mon Feb 19 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-2
+- Rebuild for CVE-2023-39326
+Resolves: RHEL-21817
+
+* Mon Jan 15 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-1
+- Update to 0.0.99.5
+Resolves: RHEL-19772
+
+* Mon Nov 27 2023 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.4-7
+- Rebuild for CVE-2023-39318, CVE-2023-39319, CVE-2023-39325 and
+  CVE-2023-44487
+Resolves: RHEL-4435, RHEL-4439, RHEL-12694
+
+* Mon Oct 02 2023 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.4-6
+- Simplify removing the user's password
+Resolves: RHEL-1834
 
 * Fri Aug 11 2023 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.4-5
 - Be aware of security hardened mount points
