@@ -17,7 +17,21 @@ Version:       0.0.99.5
 %endif
 %endif
 
-Release:       2%{?dist}
+%global toolbx_go 1.20
+
+%if 0%{?fedora}
+%global toolbx_go 1.22
+%endif
+
+%if 0%{?rhel}
+%if 0%{?rhel} == 9
+%global toolbx_go 1.22.5
+%elif 0%{?rhel} == 10
+%global toolbx_go 1.22.5
+%endif
+%endif
+
+Release:       5%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       ASL 2.0
@@ -38,7 +52,7 @@ Patch202:      toolbox-Add-migration-paths-for-coreos-toolbox-users.patch
 
 BuildRequires: gcc
 BuildRequires: go-md2man
-BuildRequires: golang >= 1.21.7
+BuildRequires: golang >= %{toolbx_go}
 BuildRequires: meson >= 0.58.0
 BuildRequires: pkgconfig(bash-completion)
 BuildRequires: shadow-utils-subid-devel
@@ -183,6 +197,18 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
+* Fri Aug 09 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-5
+- Rebuild for CVE-2024-24791
+Resolves: RHEL-47194
+
+* Wed Jun 19 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-4
+- Rebuild for CVE-2024-24788
+Resolves: RHEL-35942
+
+* Thu Apr 25 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-3
+- Rebuild for CVE-2023-45290 and CVE-2024-24785
+Resolves: RHEL-28393, RHEL-28485
+
 * Mon Feb 19 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-2
 - Rebuild for CVE-2023-39326
 Resolves: RHEL-21817
