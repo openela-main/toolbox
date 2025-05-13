@@ -1,4 +1,4 @@
-From 4587b6e9240bf936b760e901435c4cfdd9c582b6 Mon Sep 17 00:00:00 2001
+From c25ad44b7cb50d470b1533931b7808cc194f0d50 Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Wed, 18 Aug 2021 17:55:21 +0200
 Subject: [PATCH 1/2] cmd/run: Make sosreport work by setting the HOST
@@ -10,10 +10,10 @@ https://bugzilla.redhat.com/show_bug.cgi?id=1940037
  1 file changed, 1 insertion(+)
 
 diff --git a/src/cmd/run.go b/src/cmd/run.go
-index e2e31d9da4e6..84ad46518bfc 100644
+index 719c0d6abb20..92a097283f38 100644
 --- a/src/cmd/run.go
 +++ b/src/cmd/run.go
-@@ -498,6 +498,7 @@ func constructExecArgs(container, preserveFDs string,
+@@ -566,6 +566,7 @@ func constructExecArgs(container, preserveFDs string,
  	execArgs = append(execArgs, envOptions...)
  
  	execArgs = append(execArgs, []string{
@@ -22,10 +22,10 @@ index e2e31d9da4e6..84ad46518bfc 100644
  		"--preserve-fds", preserveFDs,
  	}...)
 -- 
-2.43.0
+2.46.1
 
 
-From 892c33ed75443de90a2caa90959387bbc270c564 Mon Sep 17 00:00:00 2001
+From e7877a4d1d38dc35aa6da6c012ec9a23397b7aa4 Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Fri, 10 Dec 2021 13:42:15 +0100
 Subject: [PATCH 2/2] test/system: Update to test the migration path for
@@ -42,23 +42,23 @@ ca899c8a561f357ae32c6ba6813520fd8b682abb and the parts of commit
  create mode 100644 test/system/100-root.bats
 
 diff --git a/test/system/002-help.bats b/test/system/002-help.bats
-index 695c51f92e7e..5fa4c6fe0b4c 100644
+index a8bfbc2c79d2..5dd14025ea0b 100644
 --- a/test/system/002-help.bats
 +++ b/test/system/002-help.bats
-@@ -23,20 +23,6 @@ setup() {
-   _setup_environment
+@@ -33,20 +33,6 @@ teardown() {
+   cleanup_all
  }
  
 -@test "help: Smoke test" {
--  run --keep-empty-lines --separate-stderr "$TOOLBOX"
+-  run --keep-empty-lines --separate-stderr "$TOOLBX"
 -
 -  assert_failure
 -  assert [ ${#lines[@]} -eq 0 ]
 -  lines=("${stderr_lines[@]}")
 -  assert_line --index 0 "Error: missing command"
--  assert_line --index 2 "create    Create a new toolbox container"
--  assert_line --index 3 "enter     Enter an existing toolbox container"
--  assert_line --index 4 "list      List all existing toolbox containers and images"
+-  assert_line --index 2 "create    Create a new Toolbx container"
+-  assert_line --index 3 "enter     Enter an existing Toolbx container"
+-  assert_line --index 4 "list      List all existing Toolbx containers and images"
 -  assert_line --index 6 "Run 'toolbox --help' for usage."
 -  assert [ ${#stderr_lines[@]} -eq 7 ]
 -}
@@ -68,7 +68,7 @@ index 695c51f92e7e..5fa4c6fe0b4c 100644
      skip "not found man(1)"
 diff --git a/test/system/100-root.bats b/test/system/100-root.bats
 new file mode 100644
-index 000000000000..32d87904213e
+index 000000000000..cf35d60ac25c
 --- /dev/null
 +++ b/test/system/100-root.bats
 @@ -0,0 +1,27 @@
@@ -80,15 +80,15 @@ index 000000000000..32d87904213e
 +
 +setup() {
 +  _setup_environment
-+  cleanup_containers
++  cleanup_all
 +}
 +
 +teardown() {
-+  cleanup_containers
++  cleanup_all
 +}
 +
 +@test "root: Try to enter the default container with no containers created" {
-+  run $TOOLBOX <<< "n"
++  run "$TOOLBX" <<< "n"
 +
 +  assert_success
 +  assert_line --index 0 "No toolbox containers found. Create now? [y/N] A container can be created later with the 'create' command."
@@ -100,5 +100,5 @@ index 000000000000..32d87904213e
 +  skip "Testing of entering toolboxes is not implemented"
 +}
 -- 
-2.43.0
+2.46.1
 
