@@ -1,7 +1,7 @@
 %global __brp_check_rpaths %{nil}
 
 Name:          toolbox
-Version:       0.1.1
+Version:       0.2
 
 %global goipath github.com/containers/%{name}
 
@@ -17,10 +17,10 @@ Version:       0.1.1
 %endif
 %endif
 
-%global toolbx_go 1.20
+%global toolbx_go 1.22
 
 %if 0%{?fedora}
-%global toolbx_go 1.22.7
+%global toolbx_go 1.23.9
 %endif
 
 %if 0%{?rhel}
@@ -29,7 +29,7 @@ Version:       0.1.1
 %elif 0%{?rhel} == 10
 %global toolbx_go 1.22.5
 %elif 0%{?rhel} > 10
-%global toolbx_go 1.23.1
+%global toolbx_go 1.24.3
 %endif
 %endif
 
@@ -60,42 +60,22 @@ BuildRequires: shadow-utils-subid-devel
 BuildRequires: systemd
 BuildRequires: systemd-rpm-macros
 %if ! 0%{?rhel}
-BuildRequires: golang(github.com/HarryMichal/go-version) >= 1.0.1
-BuildRequires: golang-ipath(github.com/NVIDIA/go-nvlib) >= 0.6.1
-BuildRequires: golang-ipath(github.com/NVIDIA/go-nvml) >= 0.12.4.0
-BuildRequires: golang-ipath(github.com/NVIDIA/nvidia-container-toolkit) >= 1.16.2
-BuildRequires: golang(github.com/acobaugh/osrelease) >= 0.1.0
-BuildRequires: golang(github.com/briandowns/spinner) >= 1.18.0
-BuildRequires: golang(github.com/docker/go-units) >= 0.5.0
-BuildRequires: golang(github.com/fsnotify/fsnotify) >= 1.7.0
-BuildRequires: golang(github.com/go-logfmt/logfmt) >= 0.5.0
-BuildRequires: golang(github.com/godbus/dbus) >= 5.0.6
-BuildRequires: golang(github.com/google/renameio/v2) >= 2.0.0
-BuildRequires: golang(github.com/sirupsen/logrus) >= 1.9.3
-BuildRequires: golang(github.com/spf13/cobra) >= 1.3.0
-BuildRequires: golang(github.com/spf13/viper) >= 1.10.1
-BuildRequires: golang-ipath(golang.org/x/sys) >= 0.24.0
-BuildRequires: golang(golang.org/x/text) >= 0.3.8
-BuildRequires: golang-ipath(gopkg.in/yaml.v3) >= 3.0.1
-BuildRequires: golang-ipath(tags.cncf.io/container-device-interface) >= 0.8.0
 BuildRequires: pkgconfig(fish)
 # for tests
 # BuildRequires: codespell
-# BuildRequires: golang(github.com/stretchr/testify) >= 1.9.0
 # BuildRequires: ShellCheck
 %endif
 
+Recommends:    p11-kit-server
 Recommends:    skopeo
 %if ! 0%{?rhel}
 Recommends:    fuse-overlayfs
 %endif
 
 Requires:      containers-common
+Requires:      flatpak-session-helper
 Requires:      podman >= 1.6.4
 Requires:      shadow-utils-subid%{?_isa}
-%if ! 0%{?rhel}
-Requires:      flatpak-session-helper
-%endif
 
 
 %description
@@ -154,12 +134,10 @@ The %{name}-tests package contains system tests for %{name}.
 %endif
 %endif
 
-%gomkdir -s %{_builddir}/%{extractdir}/src %{?rhel:-k}
+%gomkdir -s %{_builddir}/%{extractdir}/src -k
 
 
 %build
-export %{gomodulesmode}
-export GOPATH=%{gobuilddir}:%{gopath}
 export CGO_CFLAGS="%{optflags} -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
 
 %meson \
@@ -192,11 +170,11 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 %files
 %doc CODE-OF-CONDUCT.md CONTRIBUTING.md GOALS.md NEWS README.md SECURITY.md
-%license COPYING %{?rhel:src/vendor/modules.txt}
+%license COPYING src/vendor/modules.txt
 %{_bindir}/%{name}
-%{_datadir}/bash-completion
-%{_datadir}/fish
-%{_datadir}/zsh
+%{_datadir}/bash-completion/completions/%{name}.bash
+%{_datadir}/fish/vendor_completions.d/%{name}.fish
+%{_datadir}/zsh/site-functions/_%{name}
 %{_mandir}/man1/%{name}.1*
 %{_mandir}/man1/%{name}-*.1*
 %{_mandir}/man5/%{name}.conf.5*
@@ -210,6 +188,19 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
+* Mon Aug 11 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-1
+- Update to 0.2
+- Fix CVE-2025-23266, CVE-2025-23267, and GHSA-fv92-fjc5-jj9h or GO-2025-3787
+Resolves: RHEL-104453
+
+* Mon Jun 16 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.1.2-1
+- Update to 0.1.2
+Resolves: RHEL-104453
+
+* Mon Jun 16 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.1.1-2
+- Add 'Requires: flatpak-session-helper'
+Resolves: RHEL-104453
+
 * Mon Nov 04 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.1.1-1
 - Update to 0.1.1
 Resolves: RHEL-61907

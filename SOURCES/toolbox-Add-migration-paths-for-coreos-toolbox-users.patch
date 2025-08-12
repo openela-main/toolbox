@@ -1,4 +1,4 @@
-From c25ad44b7cb50d470b1533931b7808cc194f0d50 Mon Sep 17 00:00:00 2001
+From b0f4d55b16e59375012ea0ffbfe31086cbef2fef Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Wed, 18 Aug 2021 17:55:21 +0200
 Subject: [PATCH 1/2] cmd/run: Make sosreport work by setting the HOST
@@ -10,10 +10,10 @@ https://bugzilla.redhat.com/show_bug.cgi?id=1940037
  1 file changed, 1 insertion(+)
 
 diff --git a/src/cmd/run.go b/src/cmd/run.go
-index 719c0d6abb20..92a097283f38 100644
+index 389ea1615234..2e78a3ba3ecd 100644
 --- a/src/cmd/run.go
 +++ b/src/cmd/run.go
-@@ -566,6 +566,7 @@ func constructExecArgs(container, preserveFDs string,
+@@ -573,6 +573,7 @@ func constructExecArgs(container, preserveFDs string,
  	execArgs = append(execArgs, envOptions...)
  
  	execArgs = append(execArgs, []string{
@@ -22,10 +22,10 @@ index 719c0d6abb20..92a097283f38 100644
  		"--preserve-fds", preserveFDs,
  	}...)
 -- 
-2.46.1
+2.50.1
 
 
-From e7877a4d1d38dc35aa6da6c012ec9a23397b7aa4 Mon Sep 17 00:00:00 2001
+From d4e03324f5d263fdb7c9b10270dd7ed251d5aa9e Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Fri, 10 Dec 2021 13:42:15 +0100
 Subject: [PATCH 2/2] test/system: Update to test the migration path for
@@ -42,10 +42,10 @@ ca899c8a561f357ae32c6ba6813520fd8b682abb and the parts of commit
  create mode 100644 test/system/100-root.bats
 
 diff --git a/test/system/002-help.bats b/test/system/002-help.bats
-index a8bfbc2c79d2..5dd14025ea0b 100644
+index f7cd3f5480ab..7ad5f72e792f 100644
 --- a/test/system/002-help.bats
 +++ b/test/system/002-help.bats
-@@ -33,20 +33,6 @@ teardown() {
+@@ -33,20 +33,6 @@ teardown_file() {
    cleanup_all
  }
  
@@ -100,5 +100,5 @@ index 000000000000..cf35d60ac25c
 +  skip "Testing of entering toolboxes is not implemented"
 +}
 -- 
-2.46.1
+2.50.1
 

@@ -1,11 +1,26 @@
-From 7dc70160c8ff531473004e879dd57ec303789d71 Mon Sep 17 00:00:00 2001
+From 2ad3ed22992dd74c3deb697bdf165bf1e37479ae Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Mon, 29 Jun 2020 17:57:47 +0200
 Subject: [PATCH] build: Make the build flags match Fedora's %{gobuildflags}
 
+These reflect the defaults for Fedora 39, which is the oldest supported
+Fedora, barring some exceptions mentioned below.
+
+The change to use the RPM's %{name}, %{version}, %{release} and the
+SOURCE_DATE_EPOCH environment variable [1], instead of /dev/urandom, to
+generate the build ID annotation for the toolbox(1) binary [2] was left
+out.  It will need more work to propagate the RPM's %{name}, %{version}
+and %{release} to Meson.
+
 Note that these flags are meant for every CPU architecture other than
 PPC64, and should be kept updated to match Fedora's Go guidelines. Use
 'rpm --eval "%{gobuildflags}"' to expand the %{gobuildflags} macro.
+
+[1] https://reproducible-builds.org/docs/source-date-epoch/
+
+[2] go-rpm-macros commit 1980932bf3a21890
+    https://pagure.io/go-rpm-macros/c/1980932bf3a21890
+    https://fedoraproject.org/wiki/Changes/ReproduciblePackageBuilds
 ---
  src/go-build-wrapper | 11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
@@ -43,5 +58,5 @@ index a5a1a6a508fb..5978422e9aed 100755
  
  exit "$?"
 -- 
-2.46.1
+2.50.1
 
