@@ -33,7 +33,7 @@ Version:       0.2
 %endif
 %endif
 
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       Apache-2.0
@@ -188,18 +188,18 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
-* Sun Aug 10 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-1
+* Mon Aug 11 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-2
 - Update to 0.2
 - Fix CVE-2025-23266, CVE-2025-23267, and GHSA-fv92-fjc5-jj9h or GO-2025-3787
-Resolves: RHEL-104451
+Resolves: RHEL-104450
 
 * Mon Jun 16 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.1.2-1
 - Update to 0.1.2
-Resolves: RHEL-104451
+Resolves: RHEL-95210
 
 * Mon Jun 16 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.1.1-2
 - Add 'Requires: flatpak-session-helper'
-Resolves: RHEL-104451
+Resolves: RHEL-97099
 
 * Fri Nov 01 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.1.1-1
 - Update to 0.1.1
