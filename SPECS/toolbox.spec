@@ -33,7 +33,7 @@ Version:       0.2
 %endif
 %endif
 
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       ASL 2.0
@@ -188,18 +188,18 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
-* Mon Aug 11 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-1
+* Mon Aug 11 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-2
 - Update to 0.2
 - Fix CVE-2025-23266, CVE-2025-23267, and GHSA-fv92-fjc5-jj9h or GO-2025-3787
-Resolves: RHEL-104453
+Resolves: RHEL-104455
 
 * Mon Jun 16 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.1.2-1
 - Update to 0.1.2
-Resolves: RHEL-104453
+Resolves: RHEL-95209
 
 * Mon Jun 16 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.1.1-2
 - Add 'Requires: flatpak-session-helper'
-Resolves: RHEL-104453
+Resolves: RHEL-97099
 
 * Mon Nov 04 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.1.1-1
 - Update to 0.1.1
