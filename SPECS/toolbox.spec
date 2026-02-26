@@ -1,12 +1,12 @@
 %global __brp_check_rpaths %{nil}
 
 Name:          toolbox
-Version:       0.0.99.5
+Version:       0.0.99.5.1
 
 %global goipath github.com/containers/%{name}
 %gometa
 
-Release:       2%{?dist}
+Release:       1%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       ASL 2.0
@@ -131,6 +131,10 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
+* Tue Feb 03 2026 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5.1-1
+- Update to 0.0.99.5.1 for CVE-2025-65637
+Resolves: RHEL-135798
+
 * Mon Feb 19 2024 Debarshi Ray <rishi@fedoraproject.org> - 0.0.99.5-2
 - Rebuild for CVE-2023-39326
 Resolves: RHEL-18393
