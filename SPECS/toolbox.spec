@@ -1,7 +1,7 @@
 %global __brp_check_rpaths %{nil}
 
 Name:          toolbox
-Version:       0.2
+Version:       0.3
 
 %global goipath github.com/containers/%{name}
 
@@ -20,7 +20,7 @@ Version:       0.2
 %global toolbx_go 1.22
 
 %if 0%{?fedora}
-%global toolbx_go 1.23.9
+%global toolbx_go 1.24.7
 %endif
 
 %if 0%{?rhel}
@@ -29,7 +29,7 @@ Version:       0.2
 %elif 0%{?rhel} == 10
 %global toolbx_go 1.22.5
 %elif 0%{?rhel} > 10
-%global toolbx_go 1.24.3
+%global toolbx_go 1.24.4
 %endif
 %endif
 
@@ -42,6 +42,9 @@ Source0:       https://github.com/containers/%{name}/releases/download/%{version
 
 # RHEL specific
 Source1:       %{name}.conf
+
+# Upstream
+Patch0:        toolbox-Fall-back-to-getent-passwd-when-SHELL-is-unset.patch
 
 # Fedora specific
 Patch100:      toolbox-Make-the-build-flags-match-Fedora.patch
@@ -115,6 +118,7 @@ The %{name}-tests package contains system tests for %{name}.
 
 %prep
 %setup -q
+%patch -P0 -p1
 
 %if 0%{?fedora}
 %patch -P100 -p1
@@ -188,6 +192,14 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
+* Mon Mar 16 2026 Debarshi Ray <rishi@fedoraproject.org> - 0.3-2
+- Fall back to 'getent passwd' when SHELL is unset
+Resolves: RHEL-152803
+
+* Fri Oct 03 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.3-1
+- Update to 0.3
+Resolves: RHEL-117476
+
 * Mon Aug 11 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-2
 - Update to 0.2
 - Fix CVE-2025-23266, CVE-2025-23267, and GHSA-fv92-fjc5-jj9h or GO-2025-3787

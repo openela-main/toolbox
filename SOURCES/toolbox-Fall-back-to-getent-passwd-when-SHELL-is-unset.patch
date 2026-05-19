@@ -1,0 +1,297 @@
+From 2aef63319f5cb66df492efe8409b8748be22a625 Mon Sep 17 00:00:00 2001
+From: Debarshi Ray <rishi@fedoraproject.org>
+Date: Fri, 6 Mar 2026 21:07:54 +0100
+Subject: [PATCH 1/2] doc, cmd: Tweak the wording and error messages for
+ consistency
+
+The useradd(8) and usermod(8) manuals use the term 'login shell', except
+one instance in useradd(8) where it says 'default login shell' [1,2].
+The toolbox-init-container(1) manual and the 'init-container' command
+already use 'login shell', and it's shorter than 'default shell'.  So,
+it wins.
+
+Fallout from the following:
+  * 6c86cabbe5da6e542b50c5c043b4d213c6279bbc
+  * 59055cf9eb03d69a53b7f59a91b8def171da2fef
+  * 662bd899314d74977f8b973989d2548c1bf80fea
+  * 8f30d718066facb0c3db946db07e9c17f38741b7
+
+[1] https://man7.org/linux/man-pages/man8/useradd.8.html
+
+[2] https://man7.org/linux/man-pages/man8/usermod.8.html
+
+https://github.com/containers/toolbox/pull/1767
+---
+ doc/toolbox-enter.1.md       | 4 ++--
+ src/cmd/create.go            | 2 +-
+ src/cmd/enter.go             | 2 +-
+ src/cmd/rootMigrationPath.go | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/doc/toolbox-enter.1.md b/doc/toolbox-enter.1.md
+index 4061ef8233ab..2769a6b968f9 100644
+--- a/doc/toolbox-enter.1.md
++++ b/doc/toolbox-enter.1.md
+@@ -11,8 +11,8 @@ toolbox\-enter - Enter a Toolbx container for interactive use
+ ## DESCRIPTION
+ 
+ Spawns an interactive shell inside a Toolbx container that was created using
+-the `toolbox create` command. It tries to spawn the user's default shell, but
+-if it's not available inside the container then it falls back to `/bin/bash`.
++the `toolbox create` command. It tries to spawn the user's login shell, but if
++it's not available inside the container then it falls back to `/bin/bash`.
+ 
+ When invoked without any options, `toolbox enter` will try to enter the default
+ Toolbx container for the host, or if there's only one container available then
+diff --git a/src/cmd/create.go b/src/cmd/create.go
+index 531721b60f2d..c0ac138aa8d7 100644
+--- a/src/cmd/create.go
++++ b/src/cmd/create.go
+@@ -406,7 +406,7 @@ func createContainer(container, image, release, authFile string, showCommandToEn
+ 
+ 	userShell := os.Getenv("SHELL")
+ 	if userShell == "" {
+-		return errors.New("failed to get the current user's default shell")
++		return errors.New("failed to get the current user's login shell")
+ 	}
+ 
+ 	entryPoint := []string{
+diff --git a/src/cmd/enter.go b/src/cmd/enter.go
+index 8602b744ba35..1fc32e8a65d3 100644
+--- a/src/cmd/enter.go
++++ b/src/cmd/enter.go
+@@ -116,7 +116,7 @@ func enter(cmd *cobra.Command, args []string) error {
+ 
+ 	userShell := os.Getenv("SHELL")
+ 	if userShell == "" {
+-		return errors.New("failed to get the current user's default shell")
++		return errors.New("failed to get the current user's login shell")
+ 	}
+ 
+ 	command := []string{userShell, "-l"}
+diff --git a/src/cmd/rootMigrationPath.go b/src/cmd/rootMigrationPath.go
+index 38b5d4956515..1c689c829088 100644
+--- a/src/cmd/rootMigrationPath.go
++++ b/src/cmd/rootMigrationPath.go
+@@ -63,7 +63,7 @@ func rootRunImpl(cmd *cobra.Command, args []string) error {
+ 
+ 	userShell := os.Getenv("SHELL")
+ 	if userShell == "" {
+-		return errors.New("failed to get the current user's default shell")
++		return errors.New("failed to get the current user's login shell")
+ 	}
+ 
+ 	command := []string{userShell, "-l"}
+-- 
+2.53.0
+
+
+From 92eaafa5cc3e32d90f44d79144c30820f5557799 Mon Sep 17 00:00:00 2001
+From: Rolv-Apneseth <rolv.apneseth@gmail.com>
+Date: Thu, 19 Feb 2026 16:32:04 +0000
+Subject: [PATCH 2/2] cmd, test/system: Fall back to 'getent passwd' when SHELL
+ is unset
+
+The SHELL environment variable is supposed to be set during login, as
+the case may be, by the GNOME Display Manager (or GDM) [1], OpenSSH [2],
+login(1) [3], su(1) [4], systemd [5], etc.
+
+During the GNOME login sequence, GDM and the Pluggable Authentication
+Modules for Linux (or PAM) creates a session with gnome-session(1) as
+the session leader, and sets the SHELL environment variable on it.  Then
+the session leader sets it in the 'systemd --user' unit activation
+environment.  Meanwhile, the system-wide user@.service has already set
+SHELL on 'systemd --user', and this gets propagated into the per-user
+service manager's unit activation environment.  This gets overwritten by
+the same value by gnome-session(1).
+
+However, sometimes it's unexpectedly missing.  eg., the runtime
+environment of the GitHub Actions workflow [6]; and it has been reported
+missing on some occasions in Fedora CoreOS, and in RHEL CoreOS spawned
+by 'oc debug ...' in Red Hat OpenShift clusters.  The reasons for these
+are unclear.
+
+Therefore, it's worth falling back to 'getent passwd' in those cases to
+avoid completely breaking the 'create' and 'enter' commands.
+
+[1] GDM commit 48dfb0c6fc683eb0
+    https://gitlab.gnome.org/GNOME/gdm/-/commit/48dfb0c6fc683eb0
+
+[2] OpenSSH commit d4a8b7e34dd619a4
+    https://github.com/openssh/openssh-portable/commit/d4a8b7e34dd619a4
+
+[3] https://man7.org/linux/man-pages/man1/login.1.html
+
+[4] https://man7.org/linux/man-pages/man1/su.1.html
+
+[5] https://www.freedesktop.org/software/systemd/man/run0.html
+    https://www.freedesktop.org/software/systemd/man/systemd.exec.html
+
+[6] Commit c22b09d095c7a8ac
+    https://github.com/containers/toolbox/commit/c22b09d095c7a8ac
+    https://github.com/containers/toolbox/pull/1507
+    https://github.com/orgs/community/discussions/59413
+
+https://github.com/containers/toolbox/issues/1615
+https://issues.redhat.com/browse/OCPBUGS-76557
+
+Signed-off-by: Rolv-Apneseth <rolv.apneseth@gmail.com>
+---
+ src/cmd/create.go            |  6 +++---
+ src/cmd/enter.go             |  6 +++---
+ src/cmd/rootMigrationPath.go |  6 +++---
+ src/cmd/utils.go             | 39 ++++++++++++++++++++++++++++++++++++
+ test/system/101-create.bats  | 29 +++++++++++++++++++++++++++
+ 5 files changed, 77 insertions(+), 9 deletions(-)
+
+diff --git a/src/cmd/create.go b/src/cmd/create.go
+index c0ac138aa8d7..908e8f240fba 100644
+--- a/src/cmd/create.go
++++ b/src/cmd/create.go
+@@ -404,9 +404,9 @@ func createContainer(container, image, release, authFile string, showCommandToEn
+ 
+ 	logLevelString := podman.LogLevel.String()
+ 
+-	userShell := os.Getenv("SHELL")
+-	if userShell == "" {
+-		return errors.New("failed to get the current user's login shell")
++	userShell, err := getCurrentUserShell()
++	if err != nil {
++		return err
+ 	}
+ 
+ 	entryPoint := []string{
+diff --git a/src/cmd/enter.go b/src/cmd/enter.go
+index 1fc32e8a65d3..51be3c4b8daa 100644
+--- a/src/cmd/enter.go
++++ b/src/cmd/enter.go
+@@ -114,9 +114,9 @@ func enter(cmd *cobra.Command, args []string) error {
+ 		return err
+ 	}
+ 
+-	userShell := os.Getenv("SHELL")
+-	if userShell == "" {
+-		return errors.New("failed to get the current user's login shell")
++	userShell, err := getCurrentUserShell()
++	if err != nil {
++		return err
+ 	}
+ 
+ 	command := []string{userShell, "-l"}
+diff --git a/src/cmd/rootMigrationPath.go b/src/cmd/rootMigrationPath.go
+index 1c689c829088..9861320b39a4 100644
+--- a/src/cmd/rootMigrationPath.go
++++ b/src/cmd/rootMigrationPath.go
+@@ -61,9 +61,9 @@ func rootRunImpl(cmd *cobra.Command, args []string) error {
+ 		return err
+ 	}
+ 
+-	userShell := os.Getenv("SHELL")
+-	if userShell == "" {
+-		return errors.New("failed to get the current user's login shell")
++	userShell, err := getCurrentUserShell()
++	if err != nil {
++		return err
+ 	}
+ 
+ 	command := []string{userShell, "-l"}
+diff --git a/src/cmd/utils.go b/src/cmd/utils.go
+index 250184f0c4c9..12a5e87a50b6 100644
+--- a/src/cmd/utils.go
++++ b/src/cmd/utils.go
+@@ -31,6 +31,7 @@ import (
+ 	"strings"
+ 	"syscall"
+ 
++	"github.com/containers/toolbox/pkg/shell"
+ 	"github.com/containers/toolbox/pkg/utils"
+ 	"github.com/sirupsen/logrus"
+ 	"golang.org/x/sys/unix"
+@@ -383,6 +384,44 @@ func getCurrentUserHomeDir() string {
+ 	return currentUser.HomeDir
+ }
+ 
++func getCurrentUserShell() (string, error) {
++	if currentUser == nil {
++		panic("current user unknown")
++	}
++
++	if userShell := os.Getenv("SHELL"); userShell != "" {
++		return userShell, nil
++	}
++
++	logrus.Debug("Getting the current user's login shell: failed to read SHELL")
++	logrus.Debug("Using 'getent passwd' instead")
++
++	var stderr strings.Builder
++	var stdout strings.Builder
++
++	if err := shell.Run("getent", nil, &stdout, &stderr, "passwd", currentUser.Uid); err != nil {
++		errString := stderr.String()
++		logrus.Debugf("Getting the current user's login shell failed: %s", errString)
++		return "", fmt.Errorf("failed to get the current user's login shell: %w", err)
++	}
++
++	output := stdout.String()
++	passwdLine := strings.TrimSpace(output)
++	if len(passwdLine) == 0 {
++		return "", errors.New("failed to get the current user's login shell: no getent(1) output")
++	}
++
++	passwdLineParts := strings.Split(passwdLine, ":")
++	passwdLinePartsCount := len(passwdLineParts)
++	if passwdLinePartsCount != 7 {
++		logrus.Debugf("Getting the current user's login shell: failed to parse getent(1) output: %s",
++			passwdLine)
++		return "", errors.New("failed to get the current user's login shell: invalid getent(1) output")
++	}
++
++	return passwdLineParts[passwdLinePartsCount-1], nil
++}
++
+ func getUsageForCommonCommands() string {
+ 	var builder strings.Builder
+ 	builder.WriteString("create    Create a new Toolbx container\n")
+diff --git a/test/system/101-create.bats b/test/system/101-create.bats
+index 58068e4222a7..a31cb12dfa1f 100644
+--- a/test/system/101-create.bats
++++ b/test/system/101-create.bats
+@@ -60,6 +60,35 @@ teardown() {
+   assert_output "true"
+ }
+ 
++@test "create: Smoke test with SHELL unset" {
++  local default_container
++  default_container="$(get_system_id)-toolbox-$(get_system_version)"
++
++  pull_default_image
++  unset SHELL
++
++  run --keep-empty-lines --separate-stderr "$TOOLBX" create
++
++  assert_success
++  assert_line --index 0 "Created container: $default_container"
++  assert_line --index 1 "Enter with: toolbox enter"
++  assert [ ${#lines[@]} -eq 2 ]
++  assert [ ${#stderr_lines[@]} -eq 0 ]
++
++  run podman ps --all
++
++  assert_success
++  assert_output --regexp "Created[[:blank:]]+$default_container"
++
++  run podman inspect \
++        --format '{{index .Config.Labels "com.github.containers.toolbox"}}' \
++        --type container \
++        "$default_container"
++
++  assert_success
++  assert_output "true"
++}
++
+ @test "create: With a custom name (using option --container)" {
+   pull_default_image
+ 
+-- 
+2.53.0
+
