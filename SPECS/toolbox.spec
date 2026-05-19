@@ -1,7 +1,16 @@
 %global __brp_check_rpaths %{nil}
 
+%if 0%{?rhel}
+%if 0%{?rhel} <= 9
+%{!?bash_completions_dir: %global bash_completions_dir %{_datadir}/bash-completion/completions}
+%{!?fish_completions_dir: %global fish_completions_dir %{_datadir}/fish/vendor_completions.d}
+%{!?zsh_completions_dir: %global zsh_completions_dir %{_datadir}/zsh/site-functions}
+%endif
+%endif
+
+
 Name:          toolbox
-Version:       0.2
+Version:       0.3
 
 %global goipath github.com/containers/%{name}
 
@@ -20,7 +29,7 @@ Version:       0.2
 %global toolbx_go 1.22
 
 %if 0%{?fedora}
-%global toolbx_go 1.23.9
+%global toolbx_go 1.24.7
 %endif
 
 %if 0%{?rhel}
@@ -29,11 +38,11 @@ Version:       0.2
 %elif 0%{?rhel} == 10
 %global toolbx_go 1.22.5
 %elif 0%{?rhel} > 10
-%global toolbx_go 1.24.3
+%global toolbx_go 1.24.4
 %endif
 %endif
 
-Release:       2%{?dist}
+Release:       1%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       ASL 2.0
@@ -142,14 +151,14 @@ export CGO_CFLAGS="%{optflags} -D_GNU_SOURCE -D_LARGEFILE_SOURCE -D_LARGEFILE64_
 
 %meson \
 %if 0%{?rhel}
-    -Dfish_completions_dir=%{_datadir}/fish/vendor_completions.d \
+    -Dfish_completions_dir=%{fish_completions_dir} \
 %if 0%{?rhel} <= 9
     -Dmigration_path_for_coreos_toolbox=true \
 %endif
 %endif
     -Dprofile_dir=%{_sysconfdir}/profile.d \
     -Dtmpfiles_dir=%{_tmpfilesdir} \
-    -Dzsh_completions_dir=%{_datadir}/zsh/site-functions
+    -Dzsh_completions_dir=%{zsh_completions_dir}
 
 %meson_build
 
@@ -172,15 +181,15 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 %doc CODE-OF-CONDUCT.md CONTRIBUTING.md GOALS.md NEWS README.md SECURITY.md
 %license COPYING src/vendor/modules.txt
 %{_bindir}/%{name}
-%{_datadir}/bash-completion/completions/%{name}.bash
-%{_datadir}/fish/vendor_completions.d/%{name}.fish
-%{_datadir}/zsh/site-functions/_%{name}
 %{_mandir}/man1/%{name}.1*
 %{_mandir}/man1/%{name}-*.1*
 %{_mandir}/man5/%{name}.conf.5*
 %config(noreplace) %{_sysconfdir}/containers/%{name}.conf
 %{_sysconfdir}/profile.d/%{name}.sh
 %{_tmpfilesdir}/%{name}.conf
+%{bash_completions_dir}/%{name}.bash
+%{fish_completions_dir}/%{name}.fish
+%{zsh_completions_dir}/_%{name}
 
 
 %files tests
@@ -188,6 +197,10 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
+* Tue Oct 07 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.3-1
+- Update to 0.3
+Resolves: RHEL-117475
+
 * Mon Aug 11 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.2-2
 - Update to 0.2
 - Fix CVE-2025-23266, CVE-2025-23267, and GHSA-fv92-fjc5-jj9h or GO-2025-3787

@@ -1,4 +1,4 @@
-From 2ad3ed22992dd74c3deb697bdf165bf1e37479ae Mon Sep 17 00:00:00 2001
+From a1bb7d53fab70899c991feb9276cf93a12280750 Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Mon, 29 Jun 2020 17:57:47 +0200
 Subject: [PATCH] build: Make the build flags match Fedora's %{gobuildflags}
@@ -58,5 +58,5 @@ index a5a1a6a508fb..5978422e9aed 100755
  
  exit "$?"
 -- 
-2.50.1
+2.51.0
 
