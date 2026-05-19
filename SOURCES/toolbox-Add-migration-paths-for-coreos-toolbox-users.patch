@@ -1,4 +1,4 @@
-From 4649e50c28321185cbaa81a37efbd317b84ae840 Mon Sep 17 00:00:00 2001
+From 85481653d2fdbb8a23ec7552d1a2f589b5ed4694 Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Wed, 18 Aug 2021 17:55:21 +0200
 Subject: [PATCH 1/2] cmd/run: Make sosreport work by setting the HOST
@@ -22,10 +22,10 @@ index ceb277a3640a..72b673f506b3 100644
  		"--preserve-fds", preserveFDs,
  	}...)
 -- 
-2.51.0
+2.53.0
 
 
-From b2ba8445bee988143d546bc15fa3a8a8c019aa2e Mon Sep 17 00:00:00 2001
+From a1df0b1a13f45f086e66631a87fe94d711e41075 Mon Sep 17 00:00:00 2001
 From: Debarshi Ray <rishi@fedoraproject.org>
 Date: Fri, 10 Dec 2021 13:42:15 +0100
 Subject: [PATCH 2/2] test/system: Update to test the migration path for
@@ -100,5 +100,5 @@ index 000000000000..cf35d60ac25c
 +  skip "Testing of entering toolboxes is not implemented"
 +}
 -- 
-2.51.0
+2.53.0
 

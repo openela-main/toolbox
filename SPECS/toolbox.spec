@@ -42,7 +42,7 @@ Version:       0.3
 %endif
 %endif
 
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       ASL 2.0
@@ -51,6 +51,9 @@ Source0:       https://github.com/containers/%{name}/releases/download/%{version
 
 # RHEL specific
 Source1:       %{name}.conf
+
+# Upstream
+Patch0:        toolbox-Fall-back-to-getent-passwd-when-SHELL-is-unset.patch
 
 # Fedora specific
 Patch100:      toolbox-Make-the-build-flags-match-Fedora.patch
@@ -124,6 +127,7 @@ The %{name}-tests package contains system tests for %{name}.
 
 %prep
 %setup -q
+%patch -P0 -p1
 
 %if 0%{?fedora}
 %patch -P100 -p1
@@ -197,6 +201,10 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
+* Mon Mar 16 2026 Debarshi Ray <rishi@fedoraproject.org> - 0.3-2
+- Fall back to 'getent passwd' when SHELL is unset
+Resolves: RHEL-152801
+
 * Tue Oct 07 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.3-1
 - Update to 0.3
 Resolves: RHEL-117475
