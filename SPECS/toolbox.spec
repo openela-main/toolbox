@@ -33,7 +33,7 @@ Version:       0.3
 %endif
 %endif
 
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       Tool for interactive command line environments on Linux
 
 License:       Apache-2.0
@@ -192,9 +192,9 @@ install -m0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/containers/%{name}.conf
 
 
 %changelog
-* Mon Mar 16 2026 Debarshi Ray <rishi@fedoraproject.org> - 0.3-2
+* Mon Mar 16 2026 Debarshi Ray <rishi@fedoraproject.org> - 0.3-3
 - Fall back to 'getent passwd' when SHELL is unset
-Resolves: RHEL-152803
+Resolves: RHEL-152670
 
 * Fri Oct 03 2025 Debarshi Ray <rishi@fedoraproject.org> - 0.3-1
 - Update to 0.3
